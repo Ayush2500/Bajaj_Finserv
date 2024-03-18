@@ -1,54 +1,71 @@
-const express = require('express');
+// index.js
+
+const express = require("express");
+const bodyParser = require("body-parser");
+
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 
-const userId = "ayush_goyal";
-const email = "ayush0335.be21@chitkara.edu.in";
-const rollNumber = "2110990335";
+app.use(bodyParser.json());
 
-app.post('/bfhl', (req, res) => {
+// POST route for /bfhl endpoint
+app.post("/bfhl", (req, res) => {
   try {
-    const data = req.body.data;
+    const inputArray = req.body.data;
 
-    if (!data || !Array.isArray(data)) {
-      throw new Error('Invalid request: data is missing or not an array');
+    if (!inputArray || !Array.isArray(inputArray)) {
+      return res.status(400).json({
+        user_id: "fullname_dob",
+        is_success: false,
+        message: "Input array is missing or invalid.",
+      });
     }
 
+    const userId = req.body.user_id || "john_doe_17091999";
+
+    const email = req.body.email || "john@xyz.com";
+
+    const collegeRollNumber = req.body.college_roll_number || "ABCD123";
+
+    // Logic to separate even, odd numbers and uppercase alphabets
     const evenNumbers = [];
     const oddNumbers = [];
-    const alphabets = [];
-
-    for (const item of data) {
-      if (typeof item === 'string') {
-        alphabets.push(item.toUpperCase());
-      } else if (typeof item === 'number') {
-        if (item % 2 === 0) {
-          evenNumbers.push(item);
+    const upperCaseAlphabets = [];
+    for (const element of inputArray) {
+      if (typeof parseInt(element) === "number") {
+        if (parseInt(element) % 2 === 0) {
+          evenNumbers.push(element);
         } else {
-          oddNumbers.push(item);
+          oddNumbers.push(element);
         }
-      } else {
-        throw new Error('Invalid data type in array');
+      } else if (typeof element === "string" && /^[a-zA-Z]$/.test(element)) {
+        upperCaseAlphabets.push(element.toUpperCase());
       }
     }
 
-    const response = {
-      is_success: true,
+    // Sending response with required data
+    res.json({
       user_id: userId,
-      email: email,
-      roll_number: rollNumber,
-      odd_numbers: oddNumbers,
-      even_numbers: evenNumbers,
-      alphabets: alphabets,
-    };
-
-    res.json(response);
+      is_success: true,
+      status: "Success",
+      email_id: email,
+      college_roll_number: collegeRollNumber,
+      even_numbers_array: evenNumbers,
+      odd_numbers_array: oddNumbers,
+      upper_case_alphabets_array: upperCaseAlphabets,
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ is_success: false, error: error.message });
+    // Handling exceptions
+    console.error("Error:", error);
+    res.status(500).json({
+      user_id: "fullname_dob",
+      is_success: false,
+      message: "Internal server error.",
+    });
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
